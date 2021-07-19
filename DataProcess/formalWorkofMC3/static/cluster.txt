@@ -1,0 +1,11 @@
+water:flood sewer water sewage
+quake:earthquake quake shake shudder vibrate wobble tremor tremble quaver quiver hazard disaster destruction rubble
+rescue:rescue fire
+shelter:shelter collapsed
+food:food
+medical:medical death die ambulance
+transport:road highway bridge transportation
+power:power communication outage electricity
+gas:gas
+nuclear:nuclear contaminated radiation radioactive
+volunteer:volunteer crew
