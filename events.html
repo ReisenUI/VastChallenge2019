@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!--    <script src="https://d3js.org/d3.v5.min.js"></script>-->
+    <script src='./static/js/d3/d3.js'></script>
+    <script src="./static/js/events/main.js"></script>
+    <title>Event</title>
+</head>
+<body id="body" style="overflow: hidden;">
+<div id="event"></div>
+<div id="hover" class="hover">
+
+</div>
+<script>
+    const colors = ['#5465D6', '#1AC7C2', '#A38FBA', '#9F8C85', '#EE4395',
+                    '#D285C2', '#2F96E0', '#6E40AA', '#B23CB2', '#7FB27A', 
+                    '#CD7373', '#79570B'];
+    Event("#event", 1474, 794, colors)
+</script>
+<style>
+    .hover {
+        position: absolute;
+        width: auto;
+        height: auto;
+        text-align: center;
+        padding: 2px 5px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, .48), 0 0 6px rgba(0, 0, 0, .16);
+        background-color: white;
+        transform: translate(-50%, 20px);
+        display: none;
+        z-index: 999
+    }
+</style>
+</body>
+</html>

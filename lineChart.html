@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src='./static/js/d3/d3.min.js'></script>
+    <script src="./static/js/lineChart/lineChart.js"></script>
+    <title>LineChart</title>
+</head>
+<body style="overflow: hidden;">
+<div id="lineChart"></div>
+<script>
+    colorProjection = function(i){
+        const colors = ['#64BAAA', '#255A62', '#41A5EE', '#555ED0', '#C568F3',
+                    '#760695', '#E978B1', '#67374F', '#F42697', '#8C0250',
+                    '#4CC254', '#026E12', '#8CA93D', '#F79304', '#D1200B',
+                    '#D1200B', '#DA9D88', '#404C09', '#E312EE', '#270FE2',
+                    '#64BAAA', '#255A62', '#41A5EE', '#555ED0', '#C568F3',
+                    '#760695', '#E978B1', '#67374F', '#F42697', '#8C0250',
+                    '#4CC254', '#026E12', '#8CA93D', '#683C00', '#F79304',
+                    '#D1200B', '#DA9D88', '#404C09', '#E312EE', '#270FE2',
+                    '#64BAAA', '#255A62', '#41A5EE', '#555ED0', '#C568F3',
+                    '#760695', '#E978B1', '#67374F', '#F42697', '#8C0250'];
+        return colors[i];
+    }
+    LineChart("#lineChart", 1474, 794, colorProjection)
+</script>
+</body>
+</html>

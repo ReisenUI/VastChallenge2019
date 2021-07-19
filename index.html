@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Outreach Files -->
+    <!-- The first script label should be replaced to min.js if the page is going to be published  -->
+    <!-- <script type="text/javascript" src="./static/js/d3/d3.min.js"></script> -->
+    <script src="./static/js/topojson/topojson.js"></script>
+    <script src='./static/js/d3/d3.js'></script>
+    <script src='./static/js/fisheye/fisheye.js'></script>
+    <link rel="stylesheet" href="./static/css/main.css" type="text/css">
+
+    <title>Vast Challenge 2019</title>
+
+    <script>
+        window.onload = function () {
+            let body = document.querySelector('body');
+            body.style.height = window.innerHeight + 'px';
+        }
+
+        window.onresize = function () {
+            let body = document.querySelector('body');
+            body.style.height = window.innerHeight + 'px';
+        }
+    </script>
+</head>
+<body>
+<div class="main-container">
+    <div class="top-bar">
+        <div class="vast-icon"></div>
+        <div class="vast-title">vast-challenge-2019-GC</div>
+    </div>
+    <div class="main-content">
+        <div class="left-content">
+            <ul class="problems">
+                <li>
+                    <h2 class="obtain">MC1</h2>
+                    <div class="secondary">
+                        <h3 style="border: 2px solid #2F96E0;">water</h3>
+                        <h3 style="border: 2px solid #B23CB2;">power</h3>
+                        <h3 style="border: 2px solid #EE4395;">transport</h3>
+                        <h3 style="border: 2px solid #AFF05B;">medical</h3>
+                        <h3 style="border: 2px solid #D9C231;">buildings</h3>
+                        <h3 style="border: 2px solid #5465D6;">shake</h3>
+                    </div>
+                </li>
+                <li>
+                    <h2 class="obtain obtainsub">MC2</h2>
+                    <div class="secondary">
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div id="map" class="map-content">
+            <div id="tool-tip" class="hidden">
+                <p><strong>Neighborhood</strong></p>
+                <p><span id="value"></span></p>
+            </div>
+        </div>
+        <div class="right-content">
+            <h2 class="legend-title">Resources Needed</h2>
+            <div class="legends"></div>
+            <div id="sunBurst" class="burst-chart"></div>
+        </div>
+    </div>
+    <div class="bottom-bar">
+        <div id="timeline"></div>
+        <!--            <div class="time-line">-->
+        <!--                <img src="./static/image/time-line.png" alt="time-line">-->
+        <!--            </div>-->
+    </div>
+</div>
+
+<script src="timeline/main.js"></script>
+<script type="text/javascript">
+    //创建svg
+    // 定义地图的长宽
+    const mapPath = './static/json/geoJson/';
+    const sunPath = './static/json/MC3/';
+    const radioPath = './static/json/MC2/';
+    const normalPath = './static/json/MC1/';
+    let CentralMap = {};
+    let SunBurst = {};
+    let RadioMap = {};
+    let globalState = 0;
+    SunBurst.cur_region = -1;
+
+    d3.json(radioPath + "MC2data.json").then(data=>{
+        RadioMap.dataset = data;
+    })
+
+    d3.json(normalPath + 'MC1data.json').then(data=>{
+        CentralMap.averageData = data;
+    })
+
+    CentralMap.color = ['#DAD48E', '#866FB6', '#EEB67B', '#B73C36', '#FBF0FF',
+        '#F6CCC2', '#D285C2', '#5BC2D4', '#858585', '#C0B4D4',
+        '#F391A9', '#FAA755', '#CDE6C7', '#008792', '#6A3427',
+        '#7D5886', '#003A6C', '#69541B', '#EA66A6', '#2B6447']
+    CentralMap.color6 = ['#2F96E0', '#B23CB2', '#EE4395', '#AFF05B', '#D9C231', '#5465D6']
+    SunBurst.colorMap = {
+        'shake': '#5465D6',
+        'water': '#2F96E0',
+        'shelter': '#1AC7C2',
+        'volunteer': '#28EA8D',
+        'nuclear': '#60F760',
+        'medical': '#AFF05B',
+        'building': '#D9C231',
+        'quake': '#FF8C38',
+        'rescue': '#FF5E63',
+        'transport': '#EE4395',
+        'power': '#B23CB2',
+        'food': '#6E40AA',
+        'gas': '#D285C2'
+    }
+
+    appendLegends = function(){
+        innerTemplate = `{{key_name}}`
+        legends = document.querySelector('.legends');
+        for(key in SunBurst.colorMap){
+            let appending = document.createElement("div");
+            appending.innerHTML = innerTemplate.replace("{{key_name}}", key);
+            appending.style.margin = "5px 5px";
+            appending.style.padding = "5px 10px";
+            appending.style.border = "2px solid " + SunBurst.colorMap[key];
+            appending.style.borderRadius = "10px";
+            legends.appendChild(appending);
+        }
+    }
+
+    appendLegends();
+
+    SunBurst.colorMapper = (resources) => {
+        if (SunBurst.colorMap[resources] === undefined)
+            return '#000000';
+        return SunBurst.colorMap[resources];
+    }
+    CentralMap.width = 900, CentralMap.height = 675;
+    // 获得质心
+    CentralMap.getCentroid = (element, nbr) => {
+        let borderBox = element.getBBox();
+        offsetX = 0, offsetY = 0
+        if (nbr === "Palace Hills") {
+            offsetY -= 30;
+        } else if (nbr === "Southwest") {
+            offsetX -= 10;
+            offsetY += 20;
+        } else if (nbr === "Southton") {
+            offsetY -= 20;
+        } else if (nbr === "Old Town") {
+            offsetY += 15;
+            offsetX -= 10;
+        } else if (nbr === "Easton") {
+            offsetX -= 15;
+        } else if (nbr === "Safe Town") {
+            offsetY += 30;
+            offsetX -= 5;
+        } else if (nbr === "East Parton") {
+            offsetY -= 10;
+            offsetX -= 5;
+        } else if (nbr === "Cheddarford") {
+            offsetX += 10;
+        } else if (nbr === "Pepper Mill") {
+            offsetY += 15;
+            offsetX += 5;
+        } else if (nbr === "Terrapin Springs") {
+            offsetY -= 10;
+        } else if (nbr === "Chapparal") {
+            offsetX += 15;
+        }
+        return [borderBox.x + borderBox.width / 2 + offsetX,
+            borderBox.y + borderBox.height / 2 + offsetY];
+    }
+
+    SunBurst.read_data = data => {
+        return data;
+    }
+
+    CentralMap.read_data = data => {
+        return data;
+    }
+
+    renderDraft = async function (fileLocation, transfer, namespace, handleFunction, animFunction = "") {
+        const data = await d3.json(fileLocation, data => {
+            if (transfer !== "")
+                return transfer(data)
+            return {value: 0};
+        })
+        namespace.dataset = data;
+        if (namespace.curTime === undefined) {
+            namespace.curTime = 0
+        }
+        if (animFunction !== "") {
+            animFunction(data);
+        }
+        handleFunction(namespace.dataset);
+        return data;
+    }
+
+    CentralMap.labelTransform = function(d){
+        console.log(d);
+    }
+
+    CentralMap.svg = d3.select("#map")
+        .append('svg')
+        .attr('width', CentralMap.width)
+        .attr('height', CentralMap.height)
+        .attr('transform', 'translate(0,0) scale(0.85)')
+
+    CentralMap.projection = d3.geoMercator()
+        .translate([CentralMap.width / 2, CentralMap.height / 2])
+        .center([-119.8356755, 0.122555])
+        .scale(150000);
+
+    CentralMap.path = d3.geoPath()
+        .projection(CentralMap.projection);
+
+    CentralMap.handleStHimark = dataset => {
+        // 绘制路线地图
+        // 将 topojson 对象转化为 geoJson, 保存在 geoRoot 中
+        // 实际绘制制图时，依旧使用的是 geoJSON
+        CentralMap.geoRootMap = topojson.feature(dataset, dataset.objects.StHimark);
+        //绘制城市地图
+        CentralMap.regions = CentralMap.svg.selectAll("g")
+            .data(CentralMap.geoRootMap.features)
+            .enter()
+            .append("g")
+            .attr("class", d => {
+                return 'regions';
+            })
+
+        CentralMap.paths = CentralMap.regions.append("path")
+            .attr("class", d => {
+                return 'paths ' + d.properties.nbrhood.replace(" ", "");
+            })
+            .attr("fill", function (d, i) {    //每一块的颜色填充
+                return 'white'
+            })
+            .attr("d", CentralMap.path)
+            .on("click", function (d, i, e) {
+                let path_arr = d3.selectAll(".paths");
+                for(let i = 0; i < path_arr._groups[0].length; ++i){
+                    path_arr._groups[0][i]
+                        .style.strokeWidth = 0;
+                }
+                if(SunBurst.cur_region === i.properties.id - 1){
+                    SunBurst.cur_region = -1;
+                } else {
+                    SunBurst.cur_region = i.properties.id - 1;
+                    let cur_path = d3.select(this);
+                    cur_path
+                        .style("stroke", "#777777")
+                        .style("stroke-width", 2);
+                }
+                SunBurst.handle(SunBurst.dataset);
+            })
+            .on("mouseover", function(d, i){
+                d3.select("#tool-tip")
+                    .style("left", parseFloat(d.clientX) + "px")
+                    .style("top", parseFloat(d.clientY + 20) + "px")
+                    .style("z-index", 100)
+                    .classed("hidden", false)
+                    .select("#value")
+                    .text(i.properties.nbrhood)
+            })
+            .on("mouseout", function(d, i){
+                d3.select("#tool-tip")
+                    .classed("hidden", true)
+            })
+            .on("mousemove", function(d, i){
+                d3.select("#tool-tip")
+                    .style("left", parseFloat(d.clientX) + "px")
+                    .style("top", parseFloat(d.clientY + 20) + "px")
+            });
+
+        CentralMap.regionDots = CentralMap.regions
+            .append("circle")
+            .attr("class", "region-dot")
+            .attr("r", 5)
+            .attr("cx", data => {
+                let tGeo = CentralMap.svg.select(".paths." + data.properties.nbrhood.replace(" ", ""))
+                return CentralMap.getCentroid(tGeo._groups[0][0], data.properties.nbrhood)[0];
+            })
+            .attr("cy", data => {
+                let tGeo = CentralMap.svg.select(".paths." + data.properties.nbrhood.replace(" ", ""))
+                return CentralMap.getCentroid(tGeo._groups[0][0], data.properties.nbrhood)[1];
+            })
+            .on("mouseover", function(d, i){
+                if(globalState === 1)   return;
+                const projectionList = ["water", "power", "transport", "medical", "building", "shake"];
+                let interval = 5
+                let tmp = CentralMap.averageData.filter(d => d.time >= clock.start && d.time < clock.start + interval)
+                let curIndex = i.properties.id - 1;
+                let regionList = Array(6).fill(0)
+                let normInner = 35, normOuter = 100;
+                let hoverArc = d3.arc()
+                    .innerRadius(normInner)
+                    .outerRadius(normOuter);
+                /*
+                 * 0 - water; 1 - power; 2 - transport; 3 - medical; 4 - building; 5 - shake
+                 */
+                for(t in tmp){
+                    let region = tmp[t].regions[curIndex];
+                    for(i in projectionList){
+                        regionList[i] += region[projectionList[i]];
+                    }
+                }
+                let segment = Math.PI / 6;
+                let interv = Math.PI / 12;
+                let start = interv;
+                let end = interv + segment;
+                let incre = interv * 2 + segment;
+                let curRegionTime = []
+                let offsetX = d.target.attributes.cx.value;
+                let offsetY = d.target.attributes.cy.value;
+                for(i in projectionList){
+                    curRegionTime.push({
+                        startAngle: start,
+                        endAngle: end,
+                        value: regionList[i] / tmp.length,
+                        label: projectionList[i],
+                        index: i
+                    })
+                    start += incre;
+                    end += incre;
+                }
+            
+                CentralMap.currentHover = d3.select(".map-content svg");
+                   
+                CentralMap.currentHoverBarGroup = CentralMap.currentHover.selectAll("g .hover-path")
+                    .data(curRegionTime)
+                    .enter()
+                    .append("g")
+                    .attr("class", "hover-path")
+                    .attr("transform", "translate(" + offsetX + "," + offsetY + ")")
+
+                CentralMap.rotate = [288, 348, 40, 104, 162, 228];
+                CentralMap.rotateL = [100, 100, 105, 105, 105, 100];
+
+                    CentralMap.currentHoverText = CentralMap.currentHoverBarGroup.append("text")
+                        .text(data=>{
+                            return data.label;
+                        })
+                        .style("z-index", 100)
+                        .attr("fill", "#333")
+                        .attr("transform", data=>{
+                            console.log(data.index)
+                            return `rotate(${CentralMap.rotate[parseInt(data.index)]}) ` + `translate(${normOuter + 8},${0}) ` + `rotate(${CentralMap.rotateL[parseInt(data.index)]}) `;
+                        })
+                
+                    CentralMap.currentHoverBar = CentralMap.currentHoverBarGroup.append("path")
+                        .attr("d", function(d){
+                            return hoverArc(d);
+                        })
+                        .attr("fill", function(d, i){
+                            return "white";
+                        })
+                        .attr("stroke","#777777")
+                        .attr("stroke-width", 1)
+                        
+
+                    CentralMap.currentHoverBar2 = CentralMap.currentHoverBarGroup.append("path")
+                        .attr("d", function(d){
+                            hoverArc.outerRadius((normOuter - normInner) / 10 * d.value + normInner);
+                            return hoverArc(d);
+                        })
+                        .attr("fill", function(d, i){
+                            return CentralMap.color6[i];
+                        })
+            })
+            .on("mouseleave", function(d, i){
+                if(globalState === 1) return;
+                CentralMap.currentHoverBarGroup.remove();
+            })
+    }
+
+    CentralMap.handleBridges = dataset => {
+        // 将 topoJson 转为 geoJson, 保存在 bridgeGeoRoot 中
+        CentralMap.bridgeGeoRoot = topojson.feature(dataset, dataset.objects.bridges);
+
+        CentralMap.boundary = topojson.mesh(dataset, dataset.objects.bridges);
+        // 绘制路线地图
+        CentralMap.svg
+            .append("path")
+            .datum(CentralMap.boundary)
+            .attr("fill", "none")
+            .style("stroke", "black")
+            .style("stroke-width", 3)
+            .attr("d", CentralMap.path);
+    }
+
+    renderDraft(mapPath + 'StHimark.json', CentralMap.read_data, CentralMap, CentralMap.handleStHimark)
+    renderDraft(mapPath + 'bridges.json', CentralMap.read_data, CentralMap, CentralMap.handleBridges)
+
+    SunBurst.handle = dataset => {
+        SunBurst.width = 390
+        SunBurst.radius = SunBurst.width / 6
+        // 动态修改这个值即可
+        if(SunBurst.cur_region === -1){
+            SunBurst.cur_data = dataset[(clock.start / 5)].total;
+        } else {
+            SunBurst.cur_data = dataset[(clock.start / 5)].regions[SunBurst.cur_region];
+        }
+        SunBurst.format = d3.format(",d")
+        SunBurst.color = d3.scaleOrdinal(d3.quantize(d3.interpolateRainbow, SunBurst.cur_data.children.length + 1))
+
+        SunBurst.arc = d3.arc()
+            .startAngle(d => d.x0)
+            .endAngle(d => d.x1)
+            .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
+            .padRadius(SunBurst.radius * 1.5)
+            .innerRadius(d => d.y0 * SunBurst.radius)
+            .outerRadius(d => Math.max(d.y0 * SunBurst.radius, d.y1 * SunBurst.radius - 1))
+
+        SunBurst.partition = data => {
+            const root = d3.hierarchy(SunBurst.cur_data)
+                .sum(d => d.value)
+                .sort((a, b) => b.value - a.value)
+            return d3.partition()
+                .size([2 * Math.PI, root.height + 1])(root);
+        }
+
+        SunBurst.arcVisible = data => {
+            return data.y1 <= 3 && data.y0 >= 1 && data.x1 > data.x0;
+        }
+
+        SunBurst.labelVisible = data => {
+            return data.y1 <= 3 && data.y0 >= 1 &&
+                (data.y1 - data.y0) * (data.x1 - data.x0) > 0.07;
+        }
+
+        SunBurst.labelTransform = data => {
+            const x = (data.x0 + data.x1) / 2 * 180 / Math.PI;
+            const y = (data.y0 + data.y1) / 2 * SunBurst.radius;
+            return `rotate(${x - 90}) translate(${y}, 0) rotate(${x < 180 ? 0 : 180})`;
+        }
+
+        // 每次改变的时候需要修改cur_data
+        const root = SunBurst.partition(SunBurst.cur_data)
+
+        root.each(d => d.current = d)
+
+
+        SunBurst.clicked = (event, target) => {
+            SunBurst.parent.datum(target.parent || root);
+
+            root.each(data => data.target = {
+                x0: Math.max(0, Math.min(1, (data.x0 - target.x0) / (target.x1 - target.x0))) * 2 * Math.PI,
+                x1: Math.max(0, Math.min(1, (data.x1 - target.x0) / (target.x1 - target.x0))) * 2 * Math.PI,
+                y0: Math.max(0, data.y0 - target.depth),
+                y1: Math.max(0, data.y1 - target.depth)
+            })
+
+            SunBurst.chartTransition = SunBurst.OuterGroup.transition().duration(750);
+
+            SunBurst.radiusPath.transition(SunBurst.chartTransition)
+                .tween("data", data => {
+                    const i = d3.interpolate(data.current, data.target);
+                    return t => data.current = i(t);
+                })
+                .filter(function (data) {
+                    return +this.getAttribute("fill-opacity") || SunBurst.arcVisible(data.target);
+                })
+                .attr("fill-opacity", data => SunBurst.arcVisible(data.target) ? (data.children ? 0.6 : 0.4) : 0)
+                .attrTween("d", data => () => SunBurst.arc(data.current))
+
+            SunBurst.pathLabel.filter(function (data) {
+                return +this.getAttribute("fill-opacity") || SunBurst.labelVisible(data.target);
+            })
+                .transition(SunBurst.chartTransition)
+                .attr("fill-opacity", data => +SunBurst.labelVisible(data.target))
+                .attrTween("transform", data => () => SunBurst.labelTransform(data.current))
+        }
+
+        // svg
+        if (SunBurst.svg !== undefined) {
+            SunBurst.svg.remove()
+                .transition()
+                .duration(1000)
+                .delay(500);
+        }
+        SunBurst.svg = d3.select("#sunBurst")
+            .append("svg")
+            .attr("width", SunBurst.width)
+            .attr("height", SunBurst.width)
+            .style("font", "10px sans-serif")
+            
+
+        // g
+        SunBurst.OuterGroup = SunBurst.svg.append("g")
+            .attr("transform", `translate(${SunBurst.width / 2}, ${SunBurst.width / 2})`)
+            
+
+        // path
+        SunBurst.radiusPath = SunBurst.OuterGroup.append("g")
+            .selectAll("path")
+            .data(root.descendants().slice(1))
+            .join("path") // 可能要修改这里，动态变化的时候
+            .attr("fill", data => {
+                while (data.depth > 1)
+                    data = data.parent;
+                // return SunBurst.color(data.data.name);
+                return SunBurst.colorMapper(data.data.name)
+            })
+            .attr("fill-opacity", data => {
+                return SunBurst.arcVisible(data.current) ? (data.children ? 0.6 : 0.4) : 0
+            })
+            .attr("d", data => SunBurst.arc(data.current))
+
+        SunBurst.radiusPathFilter = SunBurst.radiusPath
+            .filter(data => data.children) // 过滤器，有孩子节点才可以点击
+            .style("cursor", "pointer")
+            .on("click", SunBurst.clicked);
+
+        SunBurst.radiusPathTitle = SunBurst.radiusPath
+            .append("title")
+            .text(data => {
+                `${data.ancestors().map(data => data.data.name).reverse().join("/")}\n${SunBurst.format(data.value)}`
+            })
+
+        // label
+        SunBurst.pathLabel = SunBurst.OuterGroup.append("g")
+            .attr("pointer-events", "none")
+            .attr("text-anchor", "middle")
+            .style("user-select", "none")
+            // .selectAll(".burst-chart text")
+            .selectAll("text")
+            .data(root.descendants().slice(1))
+            .join("text")
+            .attr("dy", "0.35em")
+            .attr("fill-opacity", data => +SunBurst.labelVisible(data.current))
+            .attr("transform", data => SunBurst.labelTransform(data.current))
+            .text(data => data.data.name);
+
+        // parent
+        SunBurst.parent = SunBurst.OuterGroup.append("circle")
+            .datum(root)
+            .attr("r", SunBurst.radius)
+            .attr("fill", "none")
+            .attr("pointer-events", "all")
+            .on("click", SunBurst.clicked)
+    }
+
+    renderDraft(sunPath + 'MC3data.json', SunBurst.read_data, SunBurst, SunBurst.handle, loadTimeline)
+
+    // 当前时刻
+    let clock = {
+        start: 0,
+        interval: 60
+    }
+
+    function loadTimeline(data) {
+        clock.interval = 60
+        clock.data = data
+        let buttonClick1Mc1 = document.querySelector('.obtain')
+        buttonClick1Mc1.onclick = function(){
+            globalState = 0;
+            loadTimeColor(clock.start, clock.start + clock.interval)
+        }
+        let buttonClick2Mc2 = document.querySelector('.obtainsub')
+        buttonClick2Mc2.onclick = function(){
+            globalState = 1;
+            loadTimeColor(clock.start, clock.start + clock.interval)
+        }
+        timeline("#timeline", data, 1474, 150, 15000, 5, d => {
+            clock.start = d
+            loadTimeColor(clock.start, clock.start + clock.interval)
+        })
+        loadTimeColor(clock.start, clock.start + clock.interval)
+        clock.freshMap = setInterval(() => {
+            clock.start += 5
+            loadTimeColor(clock.start, clock.start + clock.interval)
+        }, 15000)
+    }
+
+    /**
+     * 这是为地图染色的函数，当时间更新（包括自然往后的时间推移，点击造成的时间变化，程序一开始）都会调用一次这个函数
+     * @param start 开始时间
+     * @param end   结束时间
+     */
+    function loadTimeColor(start, end) {
+        SunBurst.handle(SunBurst.dataset)
+        let tmp = clock.data.filter(d => d.time >= start && d.time < end)
+        let opacityList = Array(19).fill(0)
+        for (t in tmp) {
+            for (i in tmp[t].regions) {
+                for (a in tmp[t].regions[i].children) {
+                    for (b in tmp[t].regions[i].children[a].children) {
+                        opacityList[i] += tmp[t].regions[i].children[a].children[b].value
+                    }
+                }
+            }
+        }
+        // let tot = d3.max(opacityList)
+        opacityList.forEach((v, i) => opacityList[i] = opacityList[i] / 60)
+
+        console.log(RadioMap.dataset[start / 5])
+
+        console.log(globalState)
+        if(globalState == 0){
+            CentralMap.paths
+            .transition()
+            .duration(1000)
+            .ease(d3['easePolyInOut'])
+            .attr("fill", function (d, i) {
+                let value = opacityList[i] * 90
+                let one = (255 + 255) / 60
+                let r = 0, g = 0, b = 0
+                if (value < 30) {
+                    r = one * value
+                    g = 255
+                } else if (value < 60) {
+                    r = 255
+                    g = 255 - ((value - 30) * one)
+                } else r = 255
+                return `rgb(${r}, ${g}, 0)`
+            })
+        } else {
+            RadioMap.mc2data = RadioMap.dataset[start / 5];
+            CentralMap.paths
+            .transition()
+            .duration(1000)
+            .ease(d3['easePolyInOut'])
+            .attr("fill", function (d) {
+                index = parseInt(d.properties.id - 1);
+                value = 20;
+                if (RadioMap.mc2data['regions'][index].total != 0) {
+                    value = RadioMap.mc2data['regions'][index].value / RadioMap.mc2data['regions'][index].total;
+                }
+                g = Math.max(0, value);
+                g = Math.min(121, g);
+                g = 255 - 25.5 * (Math.sqrt(g)-1);
+                b = g;
+                col = "rgb(255," + g.toString() + "," + b.toString();
+                return col;
+            });
+        }
+    }
+</script>
+</body>
+</html>

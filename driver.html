@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./static/js/topojson/topojson.js"></script>
+    <script src='./static/js/d3/d3.min.js'></script>
+    <script src='./static/js/driver/driver.js'></script>
+    <link rel="stylesheet" href="./static/css/main.css" type="text/css">
+    <title>MobileSensor</title>
+</head>
+<body>
+    <div id="driver" class="legends"></div>
+    <div id="MobileSensor"></div>
+    <div class="bottom-bar" style="width: 100%; height: 124px;">
+        <div id="timeline"></div>
+    </div>
+    <script src="timeline/main.js"></script>
+    <script>
+
+        const radioPath = './static/json/MC2/';
+        let RadioMap = {};
+        let allDisable = false;
+
+        const colors = ['#64BAAA', '#255A62', '#41A5EE', '#555ED0', '#C568F3',
+                        '#760695', '#E978B1', '#67374F', '#F42697', '#8C0250',
+                        '#4CC254', '#026E12', '#8CA93D', '#F79304', '#D1200B',
+                        '#D1200B', '#DA9D88', '#404C09', '#E312EE', '#270FE2',
+                        '#64BAAA', '#255A62', '#41A5EE', '#555ED0', '#C568F3',
+                        '#760695', '#E978B1', '#67374F', '#F42697', '#8C0250',
+                        '#4CC254', '#026E12', '#8CA93D', '#683C00', '#F79304',
+                        '#D1200B', '#DA9D88', '#404C09', '#E312EE', '#270FE2',
+                        '#64BAAA', '#255A62', '#41A5EE', '#555ED0', '#C568F3',
+                        '#760695', '#E978B1', '#67374F', '#F42697', '#8C0250'];
+
+        const sensors = ['MySensor', 'TestUnit', 'CitizenScientist', 'ASWillhiem', 'CitizenScientist',
+                         'MySensor', 'MySensor', 'MySensor', 'MySensor', 'HSS',
+                         'RichardFox', 'CitizenScientist', 'HSS', 'AS-3', 'CitizenScientist',
+                         'CitizenScientist', 'HiMarkHS', 'HiMarkHS', 'CitizenScientist', 'CitizenScientist',
+                         'CitizenScientist', 'HSS', 'XrayLady', 'CitizenScientist', 'CitizenScientist',
+                         'CitizenScientist', 'CitizenScientist', 'AS-1', 'AS-2', 'PeterCrystals54',
+                         'RadCurieous', 'GermanWrinkler', 'CitizenScientist', 'CitizenScientist', 'HiMarkHS',
+                         'CitizenScientist', 'Bob', 'ProfessorSievert', 'CitizenScientist', 'MutantX',
+                         'CitizenScientist', 'AlwaysGlowing', 'CitizenScientist', 'TaxiDriver', 'CitizenScientist',
+                         'Ckimball', 'UncleG', 'NAFOC', 'MySensor', 'MySensor'];
+
+        let filter = [];
+        
+        for(i in colors){
+            filter.push(true);
+        }
+
+        appendLegends = function(){
+            innerTemplate = `{{key_name}}`
+            legends = document.querySelector('.legends');
+            for(key in colors){
+                let appending = document.createElement("div");
+                appending.classList.add("legend-box");
+
+                let appendingColor = document.createElement("div");
+                appendingColor.classList.add('legend-color');
+                appendingColor.style.backgroundColor = colors[key];
+                appendingColor.setAttribute("index", key);
+                appendingColor.onclick = function(d){
+                    let index = this.getAttribute('index');
+                    if(filter[index]){
+                        appendingColor.style.backgroundColor = '#777'
+                    } else {
+                        appendingColor.style.backgroundColor = colors[index];
+                    }
+                    filter[index] = !filter[index];
+                }
+
+                let appendingText = document.createElement("div");
+                appendingText.innerHTML = innerTemplate.replace("{{key_name}}", sensors[key]);
+                appendingText.classList.add("legend-text")
+                
+                appending.appendChild(appendingColor), appending.appendChild(appendingText);
+
+                legends.appendChild(appending);
+            }
+        }
+
+        appendLegends();
+
+        document.onkeydown = function(e){
+            let colorBlock = document.querySelectorAll(".legend-color");
+            if(e.keyCode === 13){
+                if(allDisable){
+                    for(let i = 0; i < colorBlock.length; ++i){
+                        colorBlock[i].style.backgroundColor = colors[i]
+                        filter[i] = true;
+                    }
+                } else {
+                    for(let i = 0; i < colorBlock.length; ++i){
+                        colorBlock[i].style.backgroundColor = '#777';
+                        filter[i] = false;
+                    }
+                }
+                allDisable = !allDisable;
+            }
+        }
+
+        d3.json(radioPath + "MC2data.json").then(data=>{
+            RadioMap.dataset = data;
+        })
+
+        let clock = {
+            start: 0,
+            interval: 5
+        }
+
+        let radius_scale = d3.scaleLinear()
+            .domain([0, 35])
+            .range([0, 30])
+
+        colorProjection = function(i){
+            return colors[i];
+        }
+
+        MobileSensor("#MobileSensor", 1474, 670).then(function(data){
+            let MapContainer = data;
+            loadTimeline(MapContainer.dataset)
+            MapContainer.coordProjection(MapContainer.dataset[0])
+
+            function loadTimeline(data) {
+                clock.interval = 5
+                clock.data = data
+                timeline("#timeline", data, 1474, 150, 100, 1, d => {
+                    clock.start = d
+                    loadTimeColor(clock.start, clock.start + clock.interval)
+                })
+                loadTimeColor(clock.start, clock.start + clock.interval)
+                clock.freshMap = setInterval(() => {
+                    clock.start += 1
+                    loadTimeColor(clock.start, clock.start + clock.interval)
+                }, 100)
+            }
+
+            function loadTimeColor(start, end) {
+                let tmp = clock.data.filter(d => d.time >= start && d.time < end && filter[d.sensorId-1])
+                MapContainer.drivers = MapContainer.svg.selectAll("circle")
+                    .data(tmp)
+                    .join('circle')
+                    .attr("class", "point")
+                    .attr("cx", d=>{
+                        return MapContainer.coordProjection([d.long, d.lat])[0];
+                    })
+                    .attr("cy", d=>{
+                        return MapContainer.coordProjection([d.long, d.lat])[1];
+                    })
+                    .attr("fill", d=>{
+                        return colorProjection(d.sensorId - 1);
+                    })
+                    .attr("r", d=>{
+                        return radius_scale(Math.sqrt(d.value));
+                    })
+                    .attr("opacity", 0.5)
+
+                RadioMap.mc2data = RadioMap.dataset[start];
+                MapContainer.paths
+                    .transition()
+                    .duration(100)
+                    .ease(d3['easePolyInOut'])
+                    .attr("fill", function (d) {
+                        index = parseInt(d.properties.id - 1);
+                        value = 20;
+                        if (RadioMap.mc2data['regions'][index].total != 0) {
+                            value = RadioMap.mc2data['regions'][index].value / RadioMap.mc2data['regions'][index].total;
+                        }
+                        g = Math.max(0, value);
+                        g = Math.min(121, g);
+                        g = 255 - 25.5 * (Math.sqrt(g)-1);
+                        b = g;
+                        col = "rgb(255," + g.toString() + "," + b.toString();
+                        return col;
+                    });
+            }
+        })
+    </script>
+</body>
+</html>

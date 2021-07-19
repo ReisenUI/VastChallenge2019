@@ -1,0 +1,227 @@
+[
+  {
+    "time": 875,
+    "type": 0,
+    "message": "1st Earthquake"
+  },
+  {
+    "time": 884,
+    "type": 11,
+    "message": "Bratty Matty will not show up at the concert"
+  },
+  {
+    "time": 890,
+    "type": 2,
+    "message": "Power Company send volunteer"
+  },
+  {
+    "time": 1920,
+    "type": 9,
+    "message": "HSS will start monitoring radiation levels"
+  },
+  {
+    "time": 3395,
+    "type": 0,
+    "message": "2nd Earthquake"
+  },
+  {
+    "time": 3425,
+    "type": 4,
+    "message": "all bridges and viaduct closed<br><br>12th of July Bridge broke down<br><br><br>Magritte Bridge<br>12th of July Bridge<br>Friday Bridge<br>Jade Bridge<br>Wilson Forest Highway is closed"
+  },
+  {
+    "time": 3435,
+    "type": 5,
+    "message": "Gas leaking in some places"
+  },
+  {
+    "time": 3450,
+    "type": 9,
+    "message": "open Bridge A only for emergency vehicles"
+  },
+  {
+    "time": 3485,
+    "type": 2,
+    "message": "EOC Public Information Officer<br><br>Hippocrates Medical Clinic aid station<br><br>St. Himark Fire Department"
+  },
+  {
+    "time": 3485,
+    "type": 9,
+    "message": "Bridge B is open for emergency vehicles"
+  },
+  {
+    "time": 3495,
+    "type": 10,
+    "message": "Online system out of service"
+  },
+  {
+    "time": 3526,
+    "type": 4,
+    "message": "12th of July Bridge<br>Magritte Bridge<br>Jade Bridge<br>Tranky Doo Bridge<br>Friday Bridge is closed"
+  },
+  {
+    "time": 3585,
+    "type": 8,
+    "message": "Electrical lines are dangerous"
+  },
+  {
+    "time": 3665,
+    "type": 6,
+    "message": "Water is contaminated"
+  },
+  {
+    "time": 3680,
+    "type": 4,
+    "message": "12th of July Bridge<br>Friday Bridge<br>Tranky Doo Bridge<br>Jade Bridge"
+  },
+  {
+    "time": 3687,
+    "type": 11,
+    "message": "Elective surgeries are cancelled."
+  },
+  {
+    "time": 3699,
+    "type": 8,
+    "message": "Power Outrage"
+  },
+  {
+    "time": 3745,
+    "type": 1,
+    "message": "Hospitals as shelters"
+  },
+  {
+    "time": 3745,
+    "type": 2,
+    "message": "Blood Donation Center established"
+  },
+  {
+    "time": 3777,
+    "type": 11,
+    "message": "Hospital is down"
+  },
+  {
+    "time": 3780,
+    "type": 8,
+    "message": "Electricity is out"
+  },
+  {
+    "time": 3900,
+    "type": 1,
+    "message": "All libraries as shelters"
+  },
+  {
+    "time": 3930,
+    "type": 11,
+    "message": "Red Tag Buildings"
+  },
+  {
+    "time": 3960,
+    "type": 10,
+    "message": "Phone service restored"
+  },
+  {
+    "time": 4025,
+    "type": 1,
+    "message": "Library is destroyed"
+  },
+  {
+    "time": 4025,
+    "type": 6,
+    "message": "Heavy rain report"
+  },
+  {
+    "time": 4260,
+    "type": 6,
+    "message": "StHimarkMuseum is flooding"
+  },
+  {
+    "time": 4290,
+    "type": 11,
+    "message": "Riot may break out"
+  },
+  {
+    "time": 4440,
+    "type": 2,
+    "message": "Federal Building Rescue advance team"
+  },
+  {
+    "time": 4585,
+    "type": 4,
+    "message": "12th of July Bridge<br>Jade Bridge<br>Magritte Bridge<br>Tranky Doo Bridge is closed"
+  },
+  {
+    "time": 4620,
+    "type": 2,
+    "message": "Family Assistance Center report missing person"
+  },
+  {
+    "time": 4740,
+    "type": 8,
+    "message": "Electrical power restored to 80%"
+  },
+  {
+    "time": 4800,
+    "type": 2,
+    "message": "Bent Nail Construction"
+  },
+  {
+    "time": 4890,
+    "type": 9,
+    "message": "Bridge B is open for emergency vehicles"
+  },
+  {
+    "time": 4950,
+    "type": 1,
+    "message": "People camping in the parks(previously forbidden"
+  },
+  {
+    "time": 4950,
+    "type": 2,
+    "message": "Department of Public Health"
+  },
+  {
+    "time": 4950,
+    "type": 7,
+    "message": "Listeria outbreaks which affected food"
+  },
+  {
+    "time": 5160,
+    "type": 0,
+    "message": "3rd Earthquake"
+  },
+  {
+    "time": 5223,
+    "type": 4,
+    "message": "Magritte Bridge<br>Friday Bridge<br>Wilson Forest Highway<br>Jade Bridge<br>12th of July Bridge<br>Tranky Doo Bridge is closed"
+  },
+  {
+    "time": 5490,
+    "type": 4,
+    "message": "Wilson Forest Highway<br>12th of July Bridge<br>Tranky Doo Bridge<br>Jade Bridge is closed"
+  },
+  {
+    "time": 5910,
+    "type": 5,
+    "message": "Carbon monoxide leaking"
+  },
+  {
+    "time": 6300,
+    "type": 2,
+    "message": "Emergency Distribution Centers to get resources"
+  },
+  {
+    "time": 6300,
+    "type": 11,
+    "message": "Free concert"
+  },
+  {
+    "time": 6330,
+    "type": 3,
+    "message": "Schools will remain closed in 3, 8, 9, 10, 14, 17"
+  },
+  {
+    "time": 6330,
+    "type": 3,
+    "message": "School is still closed"
+  }
+]
